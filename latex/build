@@ -1,0 +1,119 @@
+#!/bin/bash
+
+# build latex (which generates phd.aux)
+# build bbl file from bib file
+# 2 times build dvi file (import bibliography and create citations in the text)
+# build pdf
+
+# @author Jaroslav Vitku
+
+# set filename here: 
+NAME="bare_jrnl"
+
+
+usage()
+{
+    echo ""
+    echo "This script uses LaTeX installation to compile: latex -> bibtex -> latex -> latex -> dvipdf"
+    echo "  and produces pdf with all fonts embedded. Check this e.g. by means of: pdffonts "$NAME".pdf"
+    echo ""
+    echo "-h|help|?     this help"
+    echo "-clean        clean the current directory from auto-generated files"
+    echo ""
+    echo "filename to be compiled is: " $NAME".tex"
+    echo ""
+}
+
+clean(){
+    echo ""
+    echo "cleaning the directory from: aux,log,dvi,bbl and blg files"
+    rm *.aux
+    rm *.log
+    rm *.dvi
+
+    rm *.bbl
+    rm *.blg
+    echo "done"
+    echo ""
+}
+
+OPTIND=1        # Reset in case getopts has been used previously in the shell.
+while getopts "ch?help:" opt; do
+    case "$opt" in
+    h|\?|help)
+        usage
+        exit 0
+        ;;
+    c)
+        clean
+        exit 0
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+[ "$1" = "--" ] && shift
+
+
+echo "====================== LaTex 1 ============================"
+TEXNAME=$NAME'.tex'
+
+latex $TEXNAME
+
+echo "====================== Bibtex ============================="
+bibtex $NAME'.aux'
+
+echo "====================== LaTex 2 ============================"
+latex $TEXNAME
+echo "====================== LaTex 3 ============================"
+
+latex $TEXNAME
+echo "====================== PDF ================================"
+# This provides all fonts embedded, to check the result, run command: pdffonts $NAME'.pdf'
+# If pdffonts not isntalled on OS X, run the command: brew install xpdf
+#
+# potentially usefull: http://mohamednabeel.blogspot.cz/2009/10/fixing-font-not-embedded-issue-to-pass.html
+dvipdf -dPDFSETTINGS=/prepress $NAME'.dvi'
+
+# In order to export figures without warning: dvips: Font Helvetica used in file fig/soea.eps is not in the mapping file.
+# use the export_fig https://sites.google.com/site/oliverwoodford/software/export_fig
+#
+# this requires (OS X) the xpdf-tools: http://en.sourceforge.jp/projects/sfnet_xpdf.mirror/downloads/xpdf-tools-3.dmg/
+echo "====================== Done ==============================="
+
+MAC="darwin10.0"
+MAC12="darwin12"
+LINUX="linux-gnu"
+
+echo $OSTYPE
+if [ "$OSTYPE" = "$MAC" ]; then
+    echo "Openning pdf under Mac OS X.."
+    open -a Preview $NAME'.pdf'
+elif [ "$OSTYPE" = "$MAC12" ]; then
+    echo "Openning pdf under Max OS X.."
+    open -a Preview $NAME'.pdf'
+elif [ "$OSTYPE" = "$LINUX" ]; then
+    echo "Openning pdf under Linux.."
+    okular $NAME'.pdf'
+else
+    echo "Unknown type of OS: -" $OSTYPE "- ..openning nothin'.."
+fi
+
+
+######################################### Matlab figures
+# 
+# Note: for the warning about:  
+# 
+# "dvips: Font Helvetica used in file fig/hardwired_prosperity.eps is not in the mapping file."
+#
+# Aparently, the Matlab is unable to export eps with embedded fonts, to embed them, Inkscape can be used
+# http://www.mathworks.com/matlabcentral/newsreader/view_thread/154595
+#
+# surf2latex: http://tex.stackexchange.com/questions/78477/matlab-figures-with-latex-fonts
+#
+# the solution seems to be http://www.mathworks.com/matlabcentral/fileexchange/23629-exportfig
+# 
+# a2ping utility http://trac.cae.tntech.edu/ttuthesis/wiki/Tips/Figures#HowDoIEmbedFontsintoMyPDFs
+#
+#
+
