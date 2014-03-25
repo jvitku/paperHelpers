@@ -3,7 +3,15 @@ PURPOSE
 
 @author Jaroslav Vitku
 
-paperHelpers is a storage of helper files for producing publication-grade graphics (eps,fonts embedded..) and LaTeX documents.
+paperHelpers is a storage of helper files for producing publication-grade graphics (eps,fonts embedded..) and LaTeX documents. 
+
+Typical use-case, where this can help:
+
+-plot figures in Matlab
+-export figures to eps
+-include eps files in the LaTeX document
+-build pdf from *.tex file
+
 
 COMPONENTS
 ----------------
